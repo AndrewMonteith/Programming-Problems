@@ -1,5 +1,2 @@
-I needed to become more familiar with python.
-
-Hence I decided to do some of the Advent of Code 2017 problems just to get used to the language more. 
-
-The code quality in the solutions is not very good, may come back and cleanup the solutions and/or finish the final 15 puzzles.
+Occasionally I get bored, so I find a random programming problem to have some fun with.
+I also use it as an excuse to practise programming in languages I don't use often: e.g python, javascript.
