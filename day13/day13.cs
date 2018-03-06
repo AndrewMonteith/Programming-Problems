@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-using System.Runtime.CompilerServices;
 
 namespace AdventOfCode
 {
@@ -17,8 +14,7 @@ namespace AdventOfCode
         internal int Depth { get; private set; }
         internal int Position { get; private set; } = 1;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void MoveScanner()
+        internal void MoveScanner()
         {
             Position += direction;
 
@@ -34,9 +30,10 @@ namespace AdventOfCode
             direction = 1;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Simulate(int n)
         {
+            n %= 2*(Depth - 1);
+
             for (var i = 0; i < n; i++)
                 MoveScanner();
         }
@@ -62,6 +59,28 @@ namespace AdventOfCode
         static List<FirewallLayer> ParseInput(string fileName) 
             => File.ReadAllLines(fileName).Select(FirewallLayer.ParseLine).ToList();
 
+        private static bool DoPass(List<FirewallLayer> firewall, Func<FirewallLayer, bool> whenHit)
+        {
+            int maxDepth = firewall.Max(layer => layer.Layer);
+
+            for (var position = 0; position <= maxDepth; position++)
+            {
+                var layer = firewall.FirstOrDefault(l => l.Layer == position);
+
+                if (layer?.Position == 1)
+                {
+                    if (whenHit(layer)) // returns true if we should stop.
+                        return false;
+                }
+
+                moveForward();
+            }
+
+            return true;
+
+            void moveForward() => firewall.ForEach(layer => layer.MoveScanner()); ;
+        }
+
         static int SeverityFor(string input)
         {
             var firewall = ParseInput("input.txt");
@@ -69,15 +88,11 @@ namespace AdventOfCode
 
             int totalSeverity = 0;
 
-            for (var position = 0; position <= maxDepth; position++)
+            DoPass(firewall, layer =>
             {
-                var layer = firewall.FirstOrDefault(l => l.Layer == position);
-
-                if (layer?.Position == 1)
-                    totalSeverity += (position * layer.Depth);
-
-                firewall.ForEach(l => l.MoveScanner());
-            }
+                totalSeverity += (layer.Depth * layer.Layer);
+                return false;
+            });
 
             return totalSeverity;
         }
@@ -85,33 +100,23 @@ namespace AdventOfCode
         static int CheckForDelay(string input)
         {
             var firewall = ParseInput("input.txt");
-
+            
             var delay = 0;
-            var maxDepth = firewall.Max(layer => layer.Layer);
-
+            
             while (true)
             {
-            failed_pass:
-                firewall.ForEach(l => l.Reset());
-                firewall.ForEach(l => l.Simulate(delay % (2*(l.Depth-1) )));
-                
-                for (var position = 0; position <= maxDepth; position++)
-                {
-                    var layer = firewall.FirstOrDefault(l => l.Layer == position);
+                firewall.ForEach(l => {
+                    l.Reset();
+                    l.Simulate(delay);
+                });
 
-                    if (layer?.Position == 1)
-                    {
-                        delay += 1;
-                        goto failed_pass;
-                    }
+                bool success = DoPass(firewall, _ => true);
 
-                    moveForward();
-                }
-
-                return delay;
+                if (success)
+                    return delay;
+                else
+                    delay += 1;
             }
-
-            void moveForward() => firewall.ForEach(l => l.MoveScanner());
         }
 
         static void Main(string[] args)
