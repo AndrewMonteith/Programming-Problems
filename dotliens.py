@@ -75,10 +75,8 @@ def dots_and_lines(w, h, moves):
 
     for move_str in moves:
         move = move_str.split(" ")
-        move[0] = int(move[0])
-        move[1] = int(move[1])
 
-        affected_edges = get_affected_edges(w, h, *move)
+        affected_edges = get_affected_edges(w, h, int(move[0]), int(move[1]), move[2])
 
         won_a_square = False
 
